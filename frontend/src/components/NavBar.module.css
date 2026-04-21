@@ -1,0 +1,35 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.left, .right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.link {
+  color: var(--text-muted);
+  font-size: 14px;
+  text-decoration: none;
+}
+.link:hover { color: var(--text); }
+
+.balance { font-size: 13px; }
+.username { color: var(--text-muted); font-size: 13px; }

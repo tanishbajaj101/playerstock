@@ -1,0 +1,85 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --text-muted: #8b949e;
+  --green: #3fb950;
+  --red: #f85149;
+  --blue: #58a6ff;
+  --yellow: #d29922;
+  --radius: 6px;
+  --font: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  transition: opacity 0.15s;
+}
+button:hover { opacity: 0.85; }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+input, select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  width: 100%;
+  outline: none;
+}
+input:focus, select:focus { border-color: var(--blue); }
+
+table { border-collapse: collapse; width: 100%; }
+th { color: var(--text-muted); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 12px; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.btn-primary { background: var(--blue); color: #000; font-weight: 600; }
+.btn-green   { background: var(--green); color: #000; font-weight: 600; }
+.btn-red     { background: var(--red); color: #fff; font-weight: 600; }
+.btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+
+.text-green { color: var(--green); }
+.text-red   { color: var(--red); }
+.text-muted { color: var(--text-muted); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-open     { background: #1f3a5f; color: var(--blue); }
+.tag-partial  { background: #3d2e00; color: var(--yellow); }
+.tag-filled   { background: #1a3a1e; color: var(--green); }
+.tag-cancelled{ background: #2d1f1f; color: var(--text-muted); }
+.tag-rejected { background: #2d1f1f; color: var(--red); }

@@ -1,0 +1,38 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.subheading {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.balanceCard {
+  display: flex;
+  gap: 32px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px 28px;
+}
+
+.balItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balItem strong {
+  font-size: 20px;
+}

@@ -1,0 +1,54 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 48px 40px;
+  width: 360px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.googleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #fff;
+  color: #333;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: box-shadow 0.15s;
+}
+.googleBtn:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  text-decoration: none;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+}

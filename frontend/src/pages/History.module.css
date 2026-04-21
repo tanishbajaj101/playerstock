@@ -1,0 +1,11 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.heading {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}

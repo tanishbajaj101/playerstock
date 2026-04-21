@@ -1,0 +1,98 @@
+.page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.assetName {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.priceDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.bigPrice {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.bigPriceMuted {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* --- 2-column layout --- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: 16px;
+  align-items: start;
+}
+
+.colLeft {}
+
+.colRight {}
+
+.stickyPanel {
+  position: sticky;
+  top: 16px;
+}
+
+.tradesSection {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.colTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+/* --- Position banner --- */
+
+.positionBanner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.positionBanner:hover {
+  border-color: var(--blue);
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .stickyPanel {
+    position: static;
+  }
+}
