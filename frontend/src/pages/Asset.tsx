@@ -11,6 +11,22 @@ import OrderForm from '../components/OrderForm'
 import PriceChart from '../components/PriceChart'
 import styles from './Asset.module.css'
 
+function PlayerAvatar({ src, initials }: { src?: string | null; initials: string }) {
+  const [failed, setFailed] = useState(false)
+  const isGeneric = !src || src.endsWith('icon512.png')
+  if (failed || isGeneric) {
+    return <div className={styles.playerAvatarFallback}>{initials}</div>
+  }
+  return (
+    <img
+      className={styles.playerAvatar}
+      src={src}
+      alt={initials}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export default function AssetPage() {
   const { symbol } = useParams<{ symbol: string }>()
   const { user } = useAuthStore()
@@ -91,17 +107,32 @@ export default function AssetPage() {
 
   const lastPrice = liveTrades[0]?.price ?? asset?.last_price
 
+  const initials = (asset?.name ?? symbol ?? '?')
+    .split(' ').slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()
+
+  const formattedDob = asset?.date_of_birth
+    ? new Date(asset.date_of_birth).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+    : null
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <div>
-          <h2 className={styles.assetName}>{asset?.name ?? symbol}</h2>
-          {asset?.nationality && (
-            <span className="text-muted">· {asset.nationality}</span>
-          )}
-          {asset?.role && (
-            <span className="text-muted" style={{ marginLeft: 8 }}>· {asset.role}</span>
-          )}
+        <div className={styles.playerProfile}>
+          <PlayerAvatar src={asset?.player_img} initials={initials} />
+          <div className={styles.playerMeta}>
+            <h2 className={styles.assetName}>{asset?.name ?? symbol}</h2>
+            <div className={styles.playerSubline}>
+              {asset?.nationality && <span className="text-muted">{asset.nationality}</span>}
+              {asset?.role && <span className="text-muted">· {asset.role}</span>}
+              {formattedDob && <span className="text-muted">· Born {formattedDob}</span>}
+            </div>
+            {(asset?.batting_style || asset?.bowling_style) && (
+              <div className={styles.styleBadges}>
+                {asset.batting_style && <span className={styles.styleBadge}>{asset.batting_style}</span>}
+                {asset.bowling_style && <span className={styles.styleBadge}>{asset.bowling_style}</span>}
+              </div>
+            )}
+          </div>
         </div>
         <div className={styles.priceDisplay}>
           {lastPrice

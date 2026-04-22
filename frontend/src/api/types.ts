@@ -25,6 +25,10 @@ export interface Asset {
   description: string
   nationality?: string | null
   role?: string | null
+  date_of_birth?: string | null
+  batting_style?: string | null
+  bowling_style?: string | null
+  player_img?: string | null
 }
 
 export interface AssetWithPrice extends Asset {

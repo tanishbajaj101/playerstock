@@ -110,6 +110,7 @@ func (h *Handler) setUsername(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listAssets(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.pool.Query(r.Context(), `
 		SELECT a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.date_of_birth, a.batting_style, a.bowling_style, a.player_img,
 		       a.supply_used,
 		       FALSE AS special_coin_used,
 		       (SELECT t.price FROM trades t WHERE t.asset_id = a.id ORDER BY t.created_at DESC LIMIT 1) AS last_price,
@@ -127,7 +128,7 @@ func (h *Handler) listAssets(w http.ResponseWriter, r *http.Request) {
 	var assets []models.AssetWithPrice
 	for rows.Next() {
 		var a models.AssetWithPrice
-		if err := rows.Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h); err != nil {
+		if err := rows.Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.DateOfBirth, &a.BattingStyle, &a.BowlingStyle, &a.PlayerImg, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h); err != nil {
 			continue
 		}
 		if a.LastPrice != nil && a.Price24hAgo != nil && !a.Price24hAgo.IsZero() {
@@ -148,13 +149,14 @@ func (h *Handler) getAsset(w http.ResponseWriter, r *http.Request) {
 	var a models.AssetWithPrice
 	err := h.pool.QueryRow(r.Context(), `
 		SELECT a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.date_of_birth, a.batting_style, a.bowling_style, a.player_img,
 		       a.supply_used,
 		       EXISTS(SELECT 1 FROM special_coin_uses scu WHERE scu.user_id=$2 AND scu.asset_id=a.id) AS special_coin_used,
 		       (SELECT t.price FROM trades t WHERE t.asset_id = a.id ORDER BY t.created_at DESC LIMIT 1) AS last_price,
 		       (SELECT ps.price FROM price_snapshots ps WHERE ps.asset_id = a.id AND ps.ts <= now() - interval '24 hours' ORDER BY ps.ts DESC LIMIT 1) AS price_24h_ago,
 		       COALESCE((SELECT SUM(t.qty) FROM trades t WHERE t.asset_id = a.id AND t.created_at > now() - interval '24 hours'), 0) AS volume_24h
 		FROM assets a WHERE a.symbol=$1
-	`, symbol, user.ID).Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h)
+	`, symbol, user.ID).Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.DateOfBirth, &a.BattingStyle, &a.BowlingStyle, &a.PlayerImg, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, errResp("asset not found"))
 		return
@@ -307,6 +309,7 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.pool.Query(r.Context(), `
 		SELECT p.user_id, p.asset_id, p.qty, p.locked_qty,
 		       a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.date_of_birth, a.batting_style, a.bowling_style, a.player_img,
 		       (SELECT t.price FROM trades t WHERE t.asset_id = a.id ORDER BY t.created_at DESC LIMIT 1) AS last_price
 		FROM positions p
 		JOIN assets a ON a.id = p.asset_id
@@ -325,6 +328,7 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(
 			&pp.UserID, &pp.AssetID, &pp.Qty, &pp.LockedQty,
 			&pp.Asset.ID, &pp.Asset.Symbol, &pp.Asset.Name, &pp.Asset.Description, &pp.Asset.Nationality, &pp.Asset.Role,
+			&pp.Asset.DateOfBirth, &pp.Asset.BattingStyle, &pp.Asset.BowlingStyle, &pp.Asset.PlayerImg,
 			&lastPrice,
 		)
 		if err != nil {
@@ -345,7 +349,8 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 	orows, err := h.pool.Query(r.Context(), `
 		SELECT o.id, o.user_id, o.asset_id, o.side, o.type, o.qty, o.filled_qty,
 		       o.price, o.status, o.is_short, o.created_at, o.updated_at,
-		       a.id, a.symbol, a.name, a.description, a.nationality, a.role
+		       a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.date_of_birth, a.batting_style, a.bowling_style, a.player_img
 		FROM orders o
 		JOIN assets a ON a.id = o.asset_id
 		WHERE o.user_id=$1 AND o.status IN ('open','partial')
@@ -363,7 +368,8 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 		var price *decimal.Decimal
 		o.Asset = &models.Asset{}
 		if err := orows.Scan(&o.ID, &o.UserID, &o.AssetID, &o.Side, &o.Type, &o.Qty, &o.FilledQty, &price, &o.Status, &o.IsShort, &o.CreatedAt, &o.UpdatedAt,
-			&o.Asset.ID, &o.Asset.Symbol, &o.Asset.Name, &o.Asset.Description, &o.Asset.Nationality, &o.Asset.Role); err != nil {
+			&o.Asset.ID, &o.Asset.Symbol, &o.Asset.Name, &o.Asset.Description, &o.Asset.Nationality, &o.Asset.Role,
+			&o.Asset.DateOfBirth, &o.Asset.BattingStyle, &o.Asset.BowlingStyle, &o.Asset.PlayerImg); err != nil {
 			continue
 		}
 		o.Price = price

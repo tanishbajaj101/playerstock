@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import type { AssetWithPrice, PricePoint } from '../api/types'
@@ -8,6 +8,23 @@ import styles from './Dashboard.module.css'
 
 type SortKey = 'name' | 'last_price' | 'change_pct' | 'volume_24h'
 type ViewMode = 'grid' | 'table'
+
+function CardAvatar({ src, name }: { src?: string | null; name: string }) {
+  const [failed, setFailed] = useState(false)
+  const isGeneric = !src || src.endsWith('icon512.png')
+  const initial = name.trim()[0]?.toUpperCase() ?? '?'
+  if (failed || isGeneric) {
+    return <div className={styles.cardAvatarFallback}>{initial}</div>
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      className={styles.cardAvatar}
+      onError={() => setFailed(true)}
+    />
+  )
+}
 
 function useWatchlist() {
   const [watchlist, setWatchlist] = useState<Set<string>>(() => {
@@ -41,7 +58,6 @@ function changePctDisplay(pct: string | null) {
 }
 
 export default function DashboardPage() {
-  const qc = useQueryClient()
   const { data: assets, isLoading } = useQuery<AssetWithPrice[]>({
     queryKey: ['assets'],
     queryFn: () => api.get<AssetWithPrice[]>('/api/assets'),
@@ -52,13 +68,6 @@ export default function DashboardPage() {
     queryFn: () => api.get<Record<string, PricePoint[]>>('/api/charts?tf=24h'),
     staleTime: 30 * 60 * 1000,
   })
-
-  useEffect(() => {
-    if (!charts) return
-    for (const [symbol, points] of Object.entries(charts)) {
-      qc.setQueryData(['chart', symbol, '24h'], points)
-    }
-  }, [charts, qc])
 
   const [view, setView] = useState<ViewMode>('grid')
   const [sortKey, setSortKey] = useState<SortKey>('name')
@@ -162,6 +171,7 @@ export default function DashboardPage() {
               >★</button>
               <Link to={`/asset/${asset.symbol}`} className={styles.cardLink}>
                 <div className={styles.cardTop}>
+                  <CardAvatar src={asset.player_img} name={asset.name} />
                   <span className={styles.assetName}>{asset.name}</span>
                   <span className={styles.price}>
                     {asset.last_price != null
@@ -172,7 +182,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className={styles.sparkline}>
-                  <Sparkline symbol={asset.symbol} />
+                  <Sparkline points={charts?.[asset.symbol]} />
                 </div>
                 <div className={styles.description}>{asset.description}</div>
                 <div className={styles.meta}>
@@ -216,7 +226,7 @@ export default function DashboardPage() {
                   <Link to={`/asset/${asset.symbol}`}>{asset.name}</Link>
                 </td>
                 <td style={{ width: 120 }}>
-                  <Sparkline symbol={asset.symbol} />
+                  <Sparkline points={charts?.[asset.symbol]} />
                 </td>
                 <td>
                   {asset.last_price != null

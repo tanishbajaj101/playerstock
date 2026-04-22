@@ -1,0 +1,5 @@
+ALTER TABLE assets DROP COLUMN IF EXISTS date_of_birth;
+ALTER TABLE assets DROP COLUMN IF EXISTS batting_style;
+ALTER TABLE assets DROP COLUMN IF EXISTS bowling_style;
+ALTER TABLE assets DROP COLUMN IF EXISTS player_img;
+TRUNCATE assets CASCADE;

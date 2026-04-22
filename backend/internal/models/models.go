@@ -23,12 +23,16 @@ type Balance struct {
 }
 
 type Asset struct {
-	ID          uuid.UUID `json:"id"`
-	Symbol      string    `json:"symbol"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Nationality *string   `json:"nationality"`
-	Role        *string   `json:"role"`
+	ID           uuid.UUID  `json:"id"`
+	Symbol       string     `json:"symbol"`
+	Name         string     `json:"name"`
+	Description  string     `json:"description"`
+	Nationality  *string    `json:"nationality"`
+	Role         *string    `json:"role"`
+	DateOfBirth  *time.Time `json:"date_of_birth"`
+	BattingStyle *string    `json:"batting_style"`
+	BowlingStyle *string    `json:"bowling_style"`
+	PlayerImg    *string    `json:"player_img"`
 }
 
 type Position struct {
