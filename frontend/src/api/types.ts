@@ -9,6 +9,7 @@ export interface Balance {
   user_id: string
   cash: string
   cash_locked: string
+  special_coins: number
 }
 
 export interface MeResponse {
@@ -31,6 +32,8 @@ export interface AssetWithPrice extends Asset {
   price_24h_ago: string | null
   change_pct: string | null
   volume_24h: string
+  supply_used: number
+  special_coin_used: boolean
 }
 
 export interface PriceLevel {
@@ -60,6 +63,7 @@ export interface Order {
   is_short: boolean
   created_at: string
   updated_at: string
+  asset?: Asset
 }
 
 export interface Trade {
@@ -72,6 +76,7 @@ export interface Trade {
   qty: string
   price: string
   created_at: string
+  asset?: Asset
 }
 
 export interface PlaceOrderRequest {

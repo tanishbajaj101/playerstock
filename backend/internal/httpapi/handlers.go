@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 	"github.com/stakestock/backend/internal/accounts"
 	"github.com/stakestock/backend/internal/auth"
@@ -109,6 +110,8 @@ func (h *Handler) setUsername(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) listAssets(w http.ResponseWriter, r *http.Request) {
 	rows, err := h.pool.Query(r.Context(), `
 		SELECT a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.supply_used,
+		       FALSE AS special_coin_used,
 		       (SELECT t.price FROM trades t WHERE t.asset_id = a.id ORDER BY t.created_at DESC LIMIT 1) AS last_price,
 		       (SELECT ps.price FROM price_snapshots ps WHERE ps.asset_id = a.id AND ps.ts <= now() - interval '24 hours' ORDER BY ps.ts DESC LIMIT 1) AS price_24h_ago,
 		       COALESCE((SELECT SUM(t.qty) FROM trades t WHERE t.asset_id = a.id AND t.created_at > now() - interval '24 hours'), 0) AS volume_24h
@@ -124,7 +127,7 @@ func (h *Handler) listAssets(w http.ResponseWriter, r *http.Request) {
 	var assets []models.AssetWithPrice
 	for rows.Next() {
 		var a models.AssetWithPrice
-		if err := rows.Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.LastPrice, &a.Price24hAgo, &a.Volume24h); err != nil {
+		if err := rows.Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h); err != nil {
 			continue
 		}
 		if a.LastPrice != nil && a.Price24hAgo != nil && !a.Price24hAgo.IsZero() {
@@ -140,15 +143,18 @@ func (h *Handler) listAssets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAsset(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
 	symbol := chi.URLParam(r, "symbol")
 	var a models.AssetWithPrice
 	err := h.pool.QueryRow(r.Context(), `
 		SELECT a.id, a.symbol, a.name, a.description, a.nationality, a.role,
+		       a.supply_used,
+		       EXISTS(SELECT 1 FROM special_coin_uses scu WHERE scu.user_id=$2 AND scu.asset_id=a.id) AS special_coin_used,
 		       (SELECT t.price FROM trades t WHERE t.asset_id = a.id ORDER BY t.created_at DESC LIMIT 1) AS last_price,
 		       (SELECT ps.price FROM price_snapshots ps WHERE ps.asset_id = a.id AND ps.ts <= now() - interval '24 hours' ORDER BY ps.ts DESC LIMIT 1) AS price_24h_ago,
 		       COALESCE((SELECT SUM(t.qty) FROM trades t WHERE t.asset_id = a.id AND t.created_at > now() - interval '24 hours'), 0) AS volume_24h
 		FROM assets a WHERE a.symbol=$1
-	`, symbol).Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.LastPrice, &a.Price24hAgo, &a.Volume24h)
+	`, symbol, user.ID).Scan(&a.ID, &a.Symbol, &a.Name, &a.Description, &a.Nationality, &a.Role, &a.SupplyUsed, &a.SpecialCoinUsed, &a.LastPrice, &a.Price24hAgo, &a.Volume24h)
 	if err != nil {
 		writeJSON(w, http.StatusNotFound, errResp("asset not found"))
 		return
@@ -338,8 +344,10 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 	// Open orders
 	orows, err := h.pool.Query(r.Context(), `
 		SELECT o.id, o.user_id, o.asset_id, o.side, o.type, o.qty, o.filled_qty,
-		       o.price, o.status, o.is_short, o.created_at, o.updated_at
+		       o.price, o.status, o.is_short, o.created_at, o.updated_at,
+		       a.id, a.symbol, a.name, a.description, a.nationality, a.role
 		FROM orders o
+		JOIN assets a ON a.id = o.asset_id
 		WHERE o.user_id=$1 AND o.status IN ('open','partial')
 		ORDER BY o.created_at DESC
 	`, user.ID)
@@ -353,7 +361,9 @@ func (h *Handler) getPortfolio(w http.ResponseWriter, r *http.Request) {
 	for orows.Next() {
 		var o models.Order
 		var price *decimal.Decimal
-		if err := orows.Scan(&o.ID, &o.UserID, &o.AssetID, &o.Side, &o.Type, &o.Qty, &o.FilledQty, &price, &o.Status, &o.IsShort, &o.CreatedAt, &o.UpdatedAt); err != nil {
+		o.Asset = &models.Asset{}
+		if err := orows.Scan(&o.ID, &o.UserID, &o.AssetID, &o.Side, &o.Type, &o.Qty, &o.FilledQty, &price, &o.Status, &o.IsShort, &o.CreatedAt, &o.UpdatedAt,
+			&o.Asset.ID, &o.Asset.Symbol, &o.Asset.Name, &o.Asset.Description, &o.Asset.Nationality, &o.Asset.Role); err != nil {
 			continue
 		}
 		o.Price = price
@@ -374,8 +384,10 @@ func (h *Handler) getHistory(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	rows, err := h.pool.Query(r.Context(), `
 		SELECT t.id, t.asset_id, t.buy_order_id, t.sell_order_id,
-		       t.buy_user_id, t.sell_user_id, t.qty, t.price, t.created_at
+		       t.buy_user_id, t.sell_user_id, t.qty, t.price, t.created_at,
+		       a.symbol, a.name
 		FROM trades t
+		JOIN assets a ON a.id = t.asset_id
 		WHERE t.buy_user_id=$1 OR t.sell_user_id=$1
 		ORDER BY t.created_at DESC
 		LIMIT 100
@@ -389,9 +401,11 @@ func (h *Handler) getHistory(w http.ResponseWriter, r *http.Request) {
 	var trades []models.Trade
 	for rows.Next() {
 		var t models.Trade
-		if err := rows.Scan(&t.ID, &t.AssetID, &t.BuyOrderID, &t.SellOrderID, &t.BuyUserID, &t.SellUserID, &t.Qty, &t.Price, &t.CreatedAt); err != nil {
+		var symbol, name string
+		if err := rows.Scan(&t.ID, &t.AssetID, &t.BuyOrderID, &t.SellOrderID, &t.BuyUserID, &t.SellUserID, &t.Qty, &t.Price, &t.CreatedAt, &symbol, &name); err != nil {
 			continue
 		}
+		t.Asset = &models.Asset{ID: t.AssetID, Symbol: symbol, Name: name}
 		trades = append(trades, t)
 	}
 	if trades == nil {
@@ -486,6 +500,95 @@ func (h *Handler) getCharts(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	writeJSON(w, http.StatusOK, out)
+}
+
+// ---- Special Coin handler ----
+
+func (h *Handler) useSpecialCoin(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user := auth.UserFromContext(ctx)
+	symbol := chi.URLParam(r, "symbol")
+
+	const maxSupply = int64(1000)
+	coinCost := decimal.NewFromInt(10)
+
+	tx, err := h.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("db error"))
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	// Lock the asset row and read supply
+	var assetID uuid.UUID
+	var supplyUsed int64
+	if err := tx.QueryRow(ctx, `
+		SELECT id, supply_used FROM assets WHERE symbol=$1 FOR UPDATE
+	`, symbol).Scan(&assetID, &supplyUsed); err != nil {
+		writeJSON(w, http.StatusNotFound, errResp("asset not found"))
+		return
+	}
+	if supplyUsed >= maxSupply {
+		writeJSON(w, http.StatusConflict, errResp("asset supply exhausted (1000/1000)"))
+		return
+	}
+
+	// Check once-per-asset constraint
+	var alreadyUsed bool
+	_ = tx.QueryRow(ctx, `
+		SELECT EXISTS(SELECT 1 FROM special_coin_uses WHERE user_id=$1 AND asset_id=$2)
+	`, user.ID, assetID).Scan(&alreadyUsed)
+	if alreadyUsed {
+		writeJSON(w, http.StatusConflict, errResp("already used special coin on this asset"))
+		return
+	}
+
+	// Debit 10 coins + consume 1 special coin atomically
+	tag, err := tx.Exec(ctx, `
+		UPDATE balances
+		SET cash = cash - $2, special_coins = special_coins - 1
+		WHERE user_id=$1 AND cash - cash_locked >= $2 AND special_coins >= 1
+	`, user.ID, coinCost)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("db error"))
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		writeJSON(w, http.StatusBadRequest, errResp("insufficient coins or no special coins remaining"))
+		return
+	}
+
+	// Record usage
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO special_coin_uses (user_id, asset_id) VALUES ($1, $2)
+	`, user.ID, assetID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("db error"))
+		return
+	}
+
+	// Increment supply counter
+	if _, err := tx.Exec(ctx, `
+		UPDATE assets SET supply_used = supply_used + 1 WHERE id=$1
+	`, assetID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("db error"))
+		return
+	}
+
+	// Credit 1 qty to the user's position
+	if _, err := tx.Exec(ctx, `
+		INSERT INTO positions (user_id, asset_id, qty, locked_qty) VALUES ($1, $2, 1, 0)
+		ON CONFLICT (user_id, asset_id) DO UPDATE SET qty = positions.qty + 1
+	`, user.ID, assetID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("db error"))
+		return
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		writeJSON(w, http.StatusInternalServerError, errResp("commit error"))
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 // ---- Helpers ----

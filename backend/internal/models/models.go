@@ -16,9 +16,10 @@ type User struct {
 }
 
 type Balance struct {
-	UserID     uuid.UUID       `json:"user_id"`
-	Cash       decimal.Decimal `json:"cash"`
-	CashLocked decimal.Decimal `json:"cash_locked"`
+	UserID       uuid.UUID       `json:"user_id"`
+	Cash         decimal.Decimal `json:"cash"`
+	CashLocked   decimal.Decimal `json:"cash_locked"`
+	SpecialCoins int             `json:"special_coins"`
 }
 
 type Asset struct {
@@ -62,18 +63,19 @@ const (
 )
 
 type Order struct {
-	ID        uuid.UUID       `json:"id"`
-	UserID    uuid.UUID       `json:"user_id"`
-	AssetID   uuid.UUID       `json:"asset_id"`
-	Side      OrderSide       `json:"side"`
-	Type      OrderType       `json:"type"`
-	Qty       decimal.Decimal `json:"qty"`
-	FilledQty decimal.Decimal `json:"filled_qty"`
+	ID        uuid.UUID        `json:"id"`
+	UserID    uuid.UUID        `json:"user_id"`
+	AssetID   uuid.UUID        `json:"asset_id"`
+	Side      OrderSide        `json:"side"`
+	Type      OrderType        `json:"type"`
+	Qty       decimal.Decimal  `json:"qty"`
+	FilledQty decimal.Decimal  `json:"filled_qty"`
 	Price     *decimal.Decimal `json:"price"`
-	Status    OrderStatus     `json:"status"`
-	IsShort   bool            `json:"is_short"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
+	Status    OrderStatus      `json:"status"`
+	IsShort   bool             `json:"is_short"`
+	CreatedAt time.Time        `json:"created_at"`
+	UpdatedAt time.Time        `json:"updated_at"`
+	Asset     *Asset           `json:"asset,omitempty"`
 }
 
 type Trade struct {
@@ -86,15 +88,18 @@ type Trade struct {
 	Qty          decimal.Decimal `json:"qty"`
 	Price        decimal.Decimal `json:"price"`
 	CreatedAt    time.Time       `json:"created_at"`
+	Asset        *Asset          `json:"asset,omitempty"`
 }
 
-// AssetWithPrice is returned by the assets list endpoint
+// AssetWithPrice is returned by the assets list and detail endpoints
 type AssetWithPrice struct {
 	Asset
-	LastPrice   *decimal.Decimal `json:"last_price"`
-	Price24hAgo *decimal.Decimal `json:"price_24h_ago"`
-	ChangePct   *decimal.Decimal `json:"change_pct"`
-	Volume24h   decimal.Decimal  `json:"volume_24h"`
+	LastPrice       *decimal.Decimal `json:"last_price"`
+	Price24hAgo     *decimal.Decimal `json:"price_24h_ago"`
+	ChangePct       *decimal.Decimal `json:"change_pct"`
+	Volume24h       decimal.Decimal  `json:"volume_24h"`
+	SupplyUsed      int              `json:"supply_used"`
+	SpecialCoinUsed bool             `json:"special_coin_used"`
 }
 
 // PortfolioPosition includes mark-to-market PnL

@@ -23,6 +23,7 @@ export default function HistoryPage() {
           <thead>
             <tr>
               <th>Time</th>
+              <th>Asset</th>
               <th>Side</th>
               <th>Price</th>
               <th>Quantity</th>
@@ -35,6 +36,7 @@ export default function HistoryPage() {
               return (
                 <tr key={t.id}>
                   <td className="text-muted">{new Date(t.created_at).toLocaleString()}</td>
+                  <td>{t.asset ? `${t.asset.name} (${t.asset.symbol})` : t.asset_id}</td>
                   <td className={isBuyer ? 'text-green' : 'text-red'}>
                     {isBuyer ? 'Buy' : 'Sell'}
                   </td>

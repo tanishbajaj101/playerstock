@@ -81,6 +81,14 @@ export default function AssetPage() {
     },
   })
 
+  const specialCoinMutation = useMutation({
+    mutationFn: () => api.post<{ status: string }>(`/api/assets/${symbol}/special-coin`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['asset', symbol] })
+      qc.invalidateQueries({ queryKey: ['portfolio'] })
+    },
+  })
+
   const lastPrice = liveTrades[0]?.price ?? asset?.last_price
 
   return (
@@ -186,6 +194,63 @@ export default function AssetPage() {
                   )}
                 </Link>
               )}
+
+              {asset && (() => {
+                const bal = portfolio?.balance
+                const freeCash = bal ? parseFloat(bal.cash) - parseFloat(bal.cash_locked) : 0
+                const scCoins = bal?.special_coins ?? 0
+                const used = asset.special_coin_used
+                const exhausted = asset.supply_used >= 1000
+                const disabled = used || exhausted || scCoins === 0 || freeCash < 10 || specialCoinMutation.isPending
+                const supplyPct = Math.min((asset.supply_used / 1000) * 100, 100)
+                const fillColor = supplyPct >= 80 ? 'var(--red)' : supplyPct >= 50 ? 'var(--yellow)' : 'var(--green)'
+                const stateLabel = used ? '✓ Special Coin Used'
+                  : exhausted ? 'Supply Exhausted'
+                  : scCoins === 0 ? 'No Special Coins'
+                  : freeCash < 10 ? 'Need 10 coins'
+                  : specialCoinMutation.isPending ? 'Processing...'
+                  : null
+                return (
+                  <div className={styles.specialCoinSection}>
+                    <div className={styles.specialCoinHeader}>
+                      <span className={styles.specialCoinTitle}>Special Coin</span>
+                      <span className={styles.specialCoinDesc}>Receive +1 qty instantly</span>
+                    </div>
+                    <div className={styles.supplyBar}>
+                      <div className={styles.supplyLabels}>
+                        <span>Supply distributed</span>
+                        <span>{asset.supply_used} / 1000</span>
+                      </div>
+                      <div className={styles.supplyTrack}>
+                        <div className={styles.supplyFill} style={{ width: `${supplyPct}%`, background: fillColor }} />
+                      </div>
+                    </div>
+                    <button
+                      className={styles.specialCoinBtn}
+                      disabled={disabled}
+                      onClick={() => specialCoinMutation.mutate()}
+                    >
+                      {stateLabel ?? (
+                        <>
+                          <span>Use Special Coin</span>
+                          <span className={styles.specialCoinBtnSub}>costs 10 coins · {scCoins} left</span>
+                        </>
+                      )}
+                    </button>
+                    {specialCoinMutation.isError && (
+                      <div className="text-red" style={{ fontSize: 12, marginTop: 6 }}>
+                        {(specialCoinMutation.error as Error)?.message}
+                      </div>
+                    )}
+                    {specialCoinMutation.isSuccess && (
+                      <div className="text-green" style={{ fontSize: 12, marginTop: 6 }}>
+                        +1 qty added to your position
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+
               <div className={styles.colTitle}>Place Order</div>
               <OrderForm symbol={symbol!} assetName={asset?.name} myPosition={myPosition} />
             </div>

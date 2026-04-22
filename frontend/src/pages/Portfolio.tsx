@@ -100,8 +100,9 @@ export default function PortfolioPage() {
             {open_orders.map(o => (
               <tr key={o.id}>
                 <td>
-                  {positions.find(p => p.asset_id === o.asset_id)?.asset.name
-                    ?? o.asset_id.slice(0, 8)}
+                  {o.asset
+                    ? <Link to={`/asset/${o.asset.symbol}`}>{o.asset.name}</Link>
+                    : o.asset_id.slice(0, 8)}
                 </td>
                 <td className={o.side === 1 ? 'text-green' : 'text-red'}>
                   {o.side === 1 ? 'Buy' : 'Sell'}{o.is_short ? ' (short)' : ''}

@@ -56,7 +56,7 @@ func (s *SessionStore) UpsertUser(ctx context.Context, googleSub, email string) 
 		coins = decimal.NewFromInt(1000)
 	}
 	_, err = s.pool.Exec(ctx, `
-		INSERT INTO balances (user_id, cash, cash_locked) VALUES ($1, $2, 0)
+		INSERT INTO balances (user_id, cash, cash_locked, special_coins) VALUES ($1, $2, 0, 10)
 		ON CONFLICT (user_id) DO NOTHING
 	`, user.ID, coins)
 	if err != nil {

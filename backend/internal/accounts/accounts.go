@@ -159,8 +159,8 @@ func ApplyTradeSellShort(ctx context.Context, tx pgx.Tx, userID, assetID uuid.UU
 func GetBalance(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*models.Balance, error) {
 	var b models.Balance
 	err := db.QueryRow(ctx, `
-		SELECT user_id, cash, cash_locked FROM balances WHERE user_id=$1
-	`, userID).Scan(&b.UserID, &b.Cash, &b.CashLocked)
+		SELECT user_id, cash, cash_locked, special_coins FROM balances WHERE user_id=$1
+	`, userID).Scan(&b.UserID, &b.Cash, &b.CashLocked, &b.SpecialCoins)
 	if err != nil {
 		return nil, fmt.Errorf("get balance: %w", err)
 	}
