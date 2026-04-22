@@ -2,6 +2,8 @@ package httpapi
 
 import (
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -85,12 +87,30 @@ func (h *Handler) Routes() http.Handler {
 	return r
 }
 
+var vercelPreviewRegex = regexp.MustCompile(`^https://[a-z0-9-]+\.vercel\.app$`)
+
+func (h *Handler) isAllowedOrigin(origin string) bool {
+	if origin == "" {
+		return false
+	}
+	for _, allowed := range strings.Split(h.frontendOrigin, ",") {
+		if strings.TrimSpace(allowed) == origin {
+			return true
+		}
+	}
+	return vercelPreviewRegex.MatchString(origin)
+}
+
 func (h *Handler) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", h.frontendOrigin)
-		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		origin := r.Header.Get("Origin")
+		if h.isAllowedOrigin(origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Vary", "Origin")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		}
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return

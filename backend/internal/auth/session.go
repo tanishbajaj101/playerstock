@@ -79,6 +79,10 @@ func (s *SessionStore) CreateSession(ctx context.Context, w http.ResponseWriter,
 	if err != nil {
 		return fmt.Errorf("create session: %w", err)
 	}
+	sameSite := http.SameSiteLaxMode
+	if s.secure {
+		sameSite = http.SameSiteNoneMode
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    token,
@@ -86,7 +90,7 @@ func (s *SessionStore) CreateSession(ctx context.Context, w http.ResponseWriter,
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Secure:   s.secure,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: sameSite,
 	})
 	return nil
 }

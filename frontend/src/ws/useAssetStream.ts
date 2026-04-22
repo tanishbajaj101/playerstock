@@ -8,8 +8,15 @@ export function useWebSocket(onMessage: MessageHandler) {
   handlersRef.current = onMessage
 
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${protocol}//${window.location.host}/ws`)
+    const apiBase = import.meta.env.VITE_API_URL
+    let wsURL: string
+    if (apiBase) {
+      wsURL = apiBase.replace(/^http/, 'ws') + '/ws'
+    } else {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      wsURL = `${protocol}//${window.location.host}/ws`
+    }
+    const ws = new WebSocket(wsURL)
     wsRef.current = ws
 
     ws.onmessage = (e) => {
