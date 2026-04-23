@@ -132,6 +132,14 @@ export default function AssetPage() {
                 {asset.bowling_style && <span className={styles.styleBadge}>{asset.bowling_style}</span>}
               </div>
             )}
+            {asset?.team && (
+              <div className={styles.teamRow}>
+                {asset.team_logo && (
+                  <img src={asset.team_logo} alt={asset.team} className={styles.teamLogo} />
+                )}
+                <span className={styles.teamName}>{asset.team}</span>
+              </div>
+            )}
           </div>
         </div>
         <div className={styles.priceDisplay}>

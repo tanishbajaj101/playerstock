@@ -118,6 +118,26 @@
   color: var(--text-muted);
 }
 
+.teamBadge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.teamLogo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.teamName {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 /* --- Star / watchlist --- */
 
 .star {

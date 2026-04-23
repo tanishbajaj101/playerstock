@@ -29,6 +29,8 @@ export interface Asset {
   batting_style?: string | null
   bowling_style?: string | null
   player_img?: string | null
+  team: string
+  team_logo?: string | null
 }
 
 export interface AssetWithPrice extends Asset {

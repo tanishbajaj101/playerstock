@@ -185,6 +185,14 @@ export default function DashboardPage() {
                   <Sparkline points={charts?.[asset.symbol]} />
                 </div>
                 <div className={styles.description}>{asset.description}</div>
+                {asset.team && (
+                  <div className={styles.teamBadge}>
+                    {asset.team_logo && (
+                      <img src={asset.team_logo} alt={asset.team} className={styles.teamLogo} />
+                    )}
+                    <span className={styles.teamName}>{asset.team}</span>
+                  </div>
+                )}
                 <div className={styles.meta}>
                   <span className="text-muted">24h vol: </span>
                   {parseFloat(asset.volume_24h).toFixed(2)}

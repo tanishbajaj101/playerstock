@@ -33,6 +33,8 @@ type Asset struct {
 	BattingStyle *string    `json:"batting_style"`
 	BowlingStyle *string    `json:"bowling_style"`
 	PlayerImg    *string    `json:"player_img"`
+	Team         string     `json:"team"`
+	TeamLogo     *string    `json:"team_logo"`
 }
 
 type Position struct {

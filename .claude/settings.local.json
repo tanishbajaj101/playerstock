@@ -6,7 +6,8 @@
       "Bash(go build *)",
       "Bash(npm install *)",
       "Bash(npx tsc *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(node scripts/generate-seed-migration.js)"
     ]
   }
 }
