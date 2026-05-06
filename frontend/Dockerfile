@@ -9,6 +9,8 @@ FROM nginx:alpine
 RUN apk add --no-cache gettext
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 EXPOSE 80
 ENV BACKEND_HOST=backend PORT=80
-CMD ["/bin/sh", "-c", "export NGINX_RESOLVER=$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf) && envsubst '${BACKEND_HOST} ${PORT} ${NGINX_RESOLVER}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

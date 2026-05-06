@@ -12,6 +12,7 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      '/healthz': 'http://localhost:8080',
       '/api': 'http://localhost:8080',
       '/auth': 'http://localhost:8080',
       '/ws': {
