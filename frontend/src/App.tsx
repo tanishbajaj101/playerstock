@@ -11,6 +11,7 @@ import DashboardPage from './pages/Dashboard'
 import AssetPage from './pages/Asset'
 import AssetsPage from './pages/Assets'
 import OrdersPage from './pages/Orders'
+import HoldingsPage from './pages/Holdings'
 import NavBar from './components/NavBar'
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -45,7 +46,9 @@ export default function App() {
             <AuthGuard>
               <NavBar />
               <Routes>
-                <Route path="/" element={<DashboardPage />} />
+                <Route path="/" element={<Navigate to="/holdings" replace />} />
+                <Route path="/holdings" element={<HoldingsPage />} />
+                <Route path="/markets" element={<DashboardPage />} />
                 <Route path="/asset/:symbol" element={<AssetPage />} />
                 <Route path="/assets" element={<AssetsPage />} />
                 <Route path="/orders" element={<OrdersPage />} />

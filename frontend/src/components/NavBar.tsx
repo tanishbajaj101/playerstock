@@ -3,10 +3,10 @@ import { useAuthStore } from '../store/auth'
 import { api } from '../api/client'
 import styles from './NavBar.module.css'
 
-function IconMarkets() {
+function IconHoldings() {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20">
-      <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
     </svg>
   )
 }
@@ -37,8 +37,8 @@ function IconWallet() {
 }
 
 const NAV_LINKS = [
-  { to: '/', label: 'Markets', Icon: IconMarkets },
   { to: '/assets', label: 'Assets', Icon: IconAssets },
+  { to: '/holdings', label: 'Holdings', Icon: IconHoldings },
   { to: '/orders', label: 'Orders', Icon: IconOrders },
 ] as const
 
@@ -57,8 +57,7 @@ export default function NavBar() {
     ? (parseFloat(balance.cash) - parseFloat(balance.cash_locked)).toFixed(2)
     : '—'
 
-  const isActive = (to: string) =>
-    to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
+  const isActive = (to: string) => location.pathname.startsWith(to)
 
   return (
     <>

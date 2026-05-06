@@ -7,9 +7,59 @@
   gap: 24px;
 }
 
-.heading {
-  font-size: 22px;
-  font-weight: 600;
+/* --- Team filter bar --- */
+
+.teamFilter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.teamFilterBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: var(--surface);
+  cursor: pointer;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.teamFilterBtn:hover { border-color: var(--border); background: var(--surface2); }
+.teamFilterBtnActive { border-color: var(--blue); background: rgba(88, 166, 255, 0.1); }
+
+.teamFilterLogo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+/* --- Card icon badges --- */
+
+.cardIcons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.smallTeamLogo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.flagIcon {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .grid {

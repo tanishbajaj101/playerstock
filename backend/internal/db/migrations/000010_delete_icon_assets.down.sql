@@ -1,0 +1,1 @@
+-- Irreversible: deleted asset rows (and their trades/orders) cannot be restored.

@@ -15,15 +15,21 @@ function PlayerAvatar({ src, initials }: { src?: string | null; initials: string
   const [failed, setFailed] = useState(false)
   const isGeneric = !src || src.endsWith('icon512.png')
   if (failed || isGeneric) {
-    return <div className={styles.playerAvatarFallback}>{initials}</div>
+    return (
+      <div className={styles.playerPortrait}>
+        <div className={styles.playerAvatarFallback}>{initials}</div>
+      </div>
+    )
   }
   return (
-    <img
-      className={styles.playerAvatar}
-      src={src}
-      alt={initials}
-      onError={() => setFailed(true)}
-    />
+    <div className={styles.playerPortrait}>
+      <img
+        className={styles.playerAvatar}
+        src={src}
+        alt={initials}
+        onError={() => setFailed(true)}
+      />
+    </div>
   )
 }
 
@@ -113,6 +119,7 @@ export default function AssetPage() {
         <div className={styles.playerProfile}>
           <PlayerAvatar src={asset?.player_img} initials={initials} />
           <div className={styles.playerMeta}>
+            <div className={styles.symbolPill}>{symbol}</div>
             <h2 className={styles.assetName}>{asset?.name ?? symbol}</h2>
             <div className={styles.playerSubline}>
               {asset?.nationality && <span className="text-muted">{asset.nationality}</span>}
@@ -135,12 +142,25 @@ export default function AssetPage() {
             )}
           </div>
         </div>
-        <div className={styles.priceDisplay}>
-          {lastPrice
-            ? <span className={styles.bigPrice}>{parseFloat(lastPrice).toFixed(2)}</span>
-            : <span className={styles.bigPriceMuted}>--</span>
-          }
-          <span className="text-muted" style={{ fontSize: 13 }}>Last trade price</span>
+        <div className={styles.marketPanel}>
+          <span className={styles.marketLabel}>Last trade price</span>
+          <div className={styles.priceDisplay}>
+            {lastPrice
+              ? <span className={styles.bigPrice}>{parseFloat(lastPrice).toFixed(2)}</span>
+              : <span className={styles.bigPriceMuted}>--</span>
+            }
+            <span className={styles.coinLabel}>coins</span>
+          </div>
+          {myPosition ? (
+            <Link to="/portfolio" className={styles.quickPosition}>
+              <span>Your position</span>
+              <strong className={parseFloat(myPosition.qty) >= 0 ? 'text-green' : 'text-red'}>
+                {parseFloat(myPosition.qty).toFixed(0)} qty
+              </strong>
+            </Link>
+          ) : (
+            <span className={styles.quickPositionMuted}>No position yet</span>
+          )}
         </div>
       </div>
 
