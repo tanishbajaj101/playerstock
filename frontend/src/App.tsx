@@ -48,7 +48,7 @@ export default function App() {
             <AuthGuard>
               <NavBar />
               <Routes>
-                <Route path="/" element={<Navigate to="/holdings" replace />} />
+                <Route path="/" element={<Navigate to="/assets" replace />} />
                 <Route path="/holdings" element={<HoldingsPage />} />
                 <Route path="/markets" element={<DashboardPage />} />
                 <Route path="/asset/:symbol" element={<AssetPage />} />
