@@ -44,8 +44,8 @@ func (s *SessionStore) UpsertUser(ctx context.Context, googleSub, email string) 
 		INSERT INTO users (id, google_sub, email, created_at)
 		VALUES ($1, $2, $3, now())
 		ON CONFLICT (google_sub) DO UPDATE SET email = EXCLUDED.email
-		RETURNING id, google_sub, email, username, created_at
-	`, userID, googleSub, email).Scan(&user.ID, &user.GoogleSub, &user.Email, &user.Username, &user.CreatedAt)
+		RETURNING id, google_sub, email, username, starter_pack_seen, created_at
+	`, userID, googleSub, email).Scan(&user.ID, &user.GoogleSub, &user.Email, &user.Username, &user.StarterPackSeen, &user.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("upsert user: %w", err)
 	}
@@ -56,7 +56,7 @@ func (s *SessionStore) UpsertUser(ctx context.Context, googleSub, email string) 
 		coins = decimal.NewFromInt(1000)
 	}
 	_, err = s.pool.Exec(ctx, `
-		INSERT INTO balances (user_id, cash, cash_locked, special_coins) VALUES ($1, $2, 0, 10)
+		INSERT INTO balances (user_id, cash, cash_locked) VALUES ($1, $2, 0)
 		ON CONFLICT (user_id) DO NOTHING
 	`, user.ID, coins)
 	if err != nil {
@@ -126,11 +126,11 @@ func (s *SessionStore) GetUserFromRequest(r *http.Request) (*models.User, error)
 func (s *SessionStore) GetUserByToken(ctx context.Context, token string) (*models.User, error) {
 	var user models.User
 	err := s.pool.QueryRow(ctx, `
-		SELECT u.id, u.google_sub, u.email, u.username, u.created_at
+		SELECT u.id, u.google_sub, u.email, u.username, u.starter_pack_seen, u.created_at
 		FROM sessions sess
 		JOIN users u ON u.id = sess.user_id
 		WHERE sess.id = $1 AND sess.expires_at > now()
-	`, token).Scan(&user.ID, &user.GoogleSub, &user.Email, &user.Username, &user.CreatedAt)
+	`, token).Scan(&user.ID, &user.GoogleSub, &user.Email, &user.Username, &user.StarterPackSeen, &user.CreatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid or expired session")
 	}

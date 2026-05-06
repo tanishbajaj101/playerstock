@@ -69,13 +69,13 @@ func (h *Handler) Routes() http.Handler {
 
 		r.Get("/me", h.getMe)
 		r.Post("/me/username", h.setUsername)
+		r.Post("/me/starter-pack", h.acknowledgeStarterPack)
 
 		r.Get("/assets", h.listAssets)
 		r.Get("/assets/{symbol}", h.getAsset)
 		r.Get("/assets/{symbol}/depth", h.getDepth)
 		r.Get("/assets/{symbol}/trades", h.getAssetTrades)
 		r.Get("/assets/{symbol}/chart", h.getAssetChart)
-		r.With(h.requireOnboarded).Post("/assets/{symbol}/special-coin", h.useSpecialCoin)
 		r.Get("/charts", h.getCharts)
 
 		r.With(h.requireOnboarded).Post("/orders", h.placeOrder)

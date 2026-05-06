@@ -17,9 +17,9 @@ export default function OnboardingPage() {
     setLoading(true)
     setError('')
     try {
-      await api.post('/api/me/username', { username: username.trim() })
+      const res = await api.post<{ username: string; starter_assets: unknown[] }>('/api/me/username', { username: username.trim() })
       await qc.invalidateQueries({ queryKey: ['me'] })
-      navigate('/')
+      navigate('/welcome', { state: { assets: res.starter_assets } })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to set username')
     } finally {

@@ -12,7 +12,9 @@
   padding: 4px 8px;
   color: var(--text-muted);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -22,12 +24,16 @@
 .row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 8px;
-  border-bottom: 1px solid rgba(48,54,61,0.5);
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(48, 54, 61, 0.4);
 }
 
-.myBuy  { background: rgba(63,185,80,0.08); }
-.mySell { background: rgba(248,81,73,0.08); }
+.myBuy  { background: rgba(63, 185, 80, 0.07); }
+.mySell { background: rgba(248, 81, 73, 0.07); }
+
+.flash {
+  animation: flashTrade 0.8s ease-out forwards;
+}
 
 .empty {
   padding: 16px 8px;

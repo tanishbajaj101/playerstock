@@ -35,9 +35,11 @@ export default function OrderForm({ symbol, assetName, myPosition }: Props) {
     },
   })
 
+  const maxUnits = 5
   const longQty = myPosition ? parseFloat(myPosition.qty) : 0
   const sellQty = parseFloat(qty) || 0
   const isShortWarning = side === 0 && type === 'limit' && sellQty > longQty
+  const canBuy = Math.max(0, maxUnits - Math.max(longQty, 0))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,23 +76,26 @@ export default function OrderForm({ symbol, assetName, myPosition }: Props) {
 
       {/* Limit / Market */}
       <div className={styles.typeRow}>
-        <label>
-          <input type="radio" value="limit" checked={type === 'limit'} onChange={() => setType('limit')} />
-          &nbsp;Limit
-        </label>
-        <label>
-          <input type="radio" value="market" checked={type === 'market'} onChange={() => setType('market')} />
-          &nbsp;Market
-        </label>
+        <button
+          type="button"
+          className={`${styles.typeBtn} ${type === 'limit' ? styles.typeBtnActive : ''}`}
+          onClick={() => setType('limit')}
+        >Limit</button>
+        <button
+          type="button"
+          className={`${styles.typeBtn} ${type === 'market' ? styles.typeBtnActive : ''}`}
+          onClick={() => setType('market')}
+        >Market</button>
       </div>
 
       <div className={styles.field}>
         <label>Quantity</label>
         <input
           type="number"
-          step="0.0001"
-          min="0.0001"
-          placeholder="0.00"
+          step="1"
+          min="1"
+          max={side === 1 ? canBuy : undefined}
+          placeholder="0"
           value={qty}
           onChange={e => setQty(e.target.value)}
           required
@@ -114,8 +119,17 @@ export default function OrderForm({ symbol, assetName, myPosition }: Props) {
 
       {isShortWarning && (
         <div className={styles.shortWarn}>
-          This will open a short position of ~{(sellQty - Math.max(longQty, 0)).toFixed(4)} units.
+          This will open a short position of ~{(sellQty - Math.max(longQty, 0)).toFixed(0)} units.
           Collateral: {((sellQty - Math.max(longQty, 0)) * (parseFloat(price) || 0)).toFixed(2)} coins reserved.
+        </div>
+      )}
+
+      {side === 1 && (
+        <div style={{ fontSize: 12, marginBottom: 4 }}>
+          {canBuy === 0
+            ? <span className="text-red">Position limit reached (max 5 units)</span>
+            : <span className="text-muted">{canBuy} unit{canBuy !== 1 ? 's' : ''} remaining (max 5)</span>
+          }
         </div>
       )}
 
@@ -125,7 +139,7 @@ export default function OrderForm({ symbol, assetName, myPosition }: Props) {
       <button
         type="submit"
         className={side === 1 ? 'btn-green' : 'btn-red'}
-        disabled={mutation.isPending}
+        disabled={mutation.isPending || (side === 1 && canBuy === 0)}
         style={{ width: '100%', padding: '10px' }}
       >
         {mutation.isPending ? 'Placing...' : side === 1 ? `Buy ${assetName ?? symbol}` : `Sell ${assetName ?? symbol}`}

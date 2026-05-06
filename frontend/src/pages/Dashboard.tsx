@@ -163,7 +163,7 @@ export default function DashboardPage() {
       ) : view === 'grid' ? (
         <div className={styles.grid}>
           {sorted.map(asset => (
-            <div key={asset.id} className={styles.card}>
+            <div key={asset.id} className={styles.card} data-direction={asset.change_pct ? (parseFloat(asset.change_pct) >= 0 ? 'up' : 'down') : undefined}>
               <button
                 className={`${styles.star} ${watchlist.has(asset.id) ? styles.starred : ''}`}
                 onClick={e => { e.preventDefault(); toggle(asset.id) }}

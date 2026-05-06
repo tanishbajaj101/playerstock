@@ -39,6 +39,12 @@ func (s *Service) PlaceOrder(ctx context.Context, userID uuid.UUID, req PlaceOrd
 	if req.Qty.LessThanOrEqual(decimal.Zero) {
 		return nil, fmt.Errorf("quantity must be positive")
 	}
+	if !req.Qty.Equal(req.Qty.Floor()) {
+		return nil, fmt.Errorf("quantity must be a whole number")
+	}
+	if req.Qty.GreaterThan(decimal.NewFromInt(5)) {
+		return nil, fmt.Errorf("quantity cannot exceed 5 per order")
+	}
 	if req.Type == models.OrderTypeLimit && req.Price == nil {
 		return nil, fmt.Errorf("limit order requires a price")
 	}
@@ -76,6 +82,13 @@ func (s *Service) PlaceOrder(ctx context.Context, userID uuid.UUID, req PlaceOrd
 
 		switch req.Side {
 		case models.SideBuy:
+			if pos.Qty.Add(req.Qty).GreaterThan(decimal.NewFromInt(5)) {
+				remaining := decimal.NewFromInt(5).Sub(pos.Qty)
+				if remaining.LessThanOrEqual(decimal.Zero) {
+					return fmt.Errorf("position limit reached: you already hold 5 units of this asset")
+				}
+				return fmt.Errorf("position limit exceeded: you can buy at most %s more unit(s) of this asset", remaining.String())
+			}
 			if req.Type == models.OrderTypeLimit {
 				reserve := req.Qty.Mul(*req.Price)
 				if err := accounts.ReserveCashForBuy(ctx, tx, userID, reserve); err != nil {

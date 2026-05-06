@@ -7,7 +7,10 @@
       "Bash(npm install *)",
       "Bash(npx tsc *)",
       "Bash(xargs grep *)",
-      "Bash(node scripts/generate-seed-migration.js)"
+      "Bash(node scripts/generate-seed-migration.js)",
+      "Bash(railway version *)",
+      "Bash(railway *)",
+      "PowerShell(railway whoami *)"
     ]
   }
 }

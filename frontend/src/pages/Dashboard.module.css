@@ -53,6 +53,14 @@
   transition: border-color 0.15s;
 }
 .card:hover { border-color: var(--blue); }
+.card[data-direction="up"]:hover {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px rgba(63,185,80,0.25), 0 4px 20px rgba(63,185,80,0.08);
+}
+.card[data-direction="down"]:hover {
+  border-color: var(--red);
+  box-shadow: 0 0 0 1px rgba(248,81,73,0.25), 0 4px 20px rgba(248,81,73,0.08);
+}
 
 .cardLink {
   display: block;
@@ -242,4 +250,9 @@
 .trendingPrice {
   font-size: 14px;
   font-weight: 600;
+}
+
+@media (max-width: 767px) {
+  .page { padding: 16px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 }

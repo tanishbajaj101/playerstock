@@ -9,13 +9,13 @@ export interface Balance {
   user_id: string
   cash: string
   cash_locked: string
-  special_coins: number
 }
 
 export interface MeResponse {
   user: User
   balance: Balance
   needs_onboarding: boolean
+  needs_welcome: boolean
 }
 
 export interface Asset {
@@ -38,8 +38,6 @@ export interface AssetWithPrice extends Asset {
   price_24h_ago: string | null
   change_pct: string | null
   volume_24h: string
-  supply_used: number
-  special_coin_used: boolean
 }
 
 export interface PriceLevel {

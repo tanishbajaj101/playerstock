@@ -8,18 +8,18 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	GoogleSub string    `json:"-"`
-	Email     string    `json:"email"`
-	Username  *string   `json:"username"`
-	CreatedAt time.Time `json:"created_at"`
+	ID              uuid.UUID `json:"id"`
+	GoogleSub       string    `json:"-"`
+	Email           string    `json:"email"`
+	Username        *string   `json:"username"`
+	StarterPackSeen bool      `json:"-"`
+	CreatedAt       time.Time `json:"created_at"`
 }
 
 type Balance struct {
-	UserID       uuid.UUID       `json:"user_id"`
-	Cash         decimal.Decimal `json:"cash"`
-	CashLocked   decimal.Decimal `json:"cash_locked"`
-	SpecialCoins int             `json:"special_coins"`
+	UserID     uuid.UUID       `json:"user_id"`
+	Cash       decimal.Decimal `json:"cash"`
+	CashLocked decimal.Decimal `json:"cash_locked"`
 }
 
 type Asset struct {
@@ -100,12 +100,10 @@ type Trade struct {
 // AssetWithPrice is returned by the assets list and detail endpoints
 type AssetWithPrice struct {
 	Asset
-	LastPrice       *decimal.Decimal `json:"last_price"`
-	Price24hAgo     *decimal.Decimal `json:"price_24h_ago"`
-	ChangePct       *decimal.Decimal `json:"change_pct"`
-	Volume24h       decimal.Decimal  `json:"volume_24h"`
-	SupplyUsed      int              `json:"supply_used"`
-	SpecialCoinUsed bool             `json:"special_coin_used"`
+	LastPrice   *decimal.Decimal `json:"last_price"`
+	Price24hAgo *decimal.Decimal `json:"price_24h_ago"`
+	ChangePct   *decimal.Decimal `json:"change_pct"`
+	Volume24h   decimal.Decimal  `json:"volume_24h"`
 }
 
 // PortfolioPosition includes mark-to-market PnL

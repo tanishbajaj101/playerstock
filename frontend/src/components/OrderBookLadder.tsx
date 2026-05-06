@@ -7,6 +7,7 @@ interface Props {
 }
 
 function fmt(n: string) { return parseFloat(n).toFixed(2) }
+function fmtQty(n: string) { return String(parseInt(n, 10)) }
 
 export default function OrderBookLadder({ bids, asks }: Props) {
   const maxQty = Math.max(
@@ -31,7 +32,7 @@ export default function OrderBookLadder({ bids, asks }: Props) {
               style={{ width: `${(parseFloat(l.quantity) / maxQty) * 100}%`, background: 'rgba(248,81,73,0.15)' }}
             />
             <span className="text-red">{fmt(l.price)}</span>
-            <span>{fmt(l.quantity)}</span>
+            <span>{fmtQty(l.quantity)}</span>
           </div>
         ))}
       </div>
@@ -56,7 +57,7 @@ export default function OrderBookLadder({ bids, asks }: Props) {
               style={{ width: `${(parseFloat(l.quantity) / maxQty) * 100}%`, background: 'rgba(63,185,80,0.15)' }}
             />
             <span className="text-green">{fmt(l.price)}</span>
-            <span>{fmt(l.quantity)}</span>
+            <span>{fmtQty(l.quantity)}</span>
           </div>
         ))}
       </div>

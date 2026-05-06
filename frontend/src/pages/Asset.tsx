@@ -39,6 +39,7 @@ export default function AssetPage() {
 
   const [depth, setDepth] = useState<DepthResponse>({ bids: [], asks: [] })
   const [liveTrades, setLiveTrades] = useState<Trade[]>([])
+  const [mobileTab, setMobileTab] = useState<'chart' | 'book' | 'trade'>('chart')
 
   const { data: initialDepth } = useQuery<DepthResponse>({
     queryKey: ['depth', symbol],
@@ -97,14 +98,6 @@ export default function AssetPage() {
     },
   })
 
-  const specialCoinMutation = useMutation({
-    mutationFn: () => api.post<{ status: string }>(`/api/assets/${symbol}/special-coin`, {}),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['asset', symbol] })
-      qc.invalidateQueries({ queryKey: ['portfolio'] })
-    },
-  })
-
   const lastPrice = liveTrades[0]?.price ?? asset?.last_price
 
   const initials = (asset?.name ?? symbol ?? '?')
@@ -151,9 +144,21 @@ export default function AssetPage() {
         </div>
       </div>
 
+      <div className={styles.mobileTabs}>
+        {(['chart', 'book', 'trade'] as const).map(tab => (
+          <button
+            key={tab}
+            className={`${styles.mobileTab} ${mobileTab === tab ? styles.mobileTabActive : ''}`}
+            onClick={() => setMobileTab(tab)}
+          >
+            {tab === 'chart' ? 'Chart' : tab === 'book' ? 'Order Book' : 'Trade'}
+          </button>
+        ))}
+      </div>
+
       <div className={styles.layout}>
         {/* Left column: chart + trades */}
-        <div className={styles.colLeft}>
+        <div className={`${styles.colLeft} ${mobileTab !== 'chart' ? styles.mobileHide : ''}`}>
           <div className="card" style={{ marginBottom: 16 }}>
             <div className={styles.colTitle}>Price History</div>
             <PriceChart symbol={symbol!} />
@@ -185,9 +190,9 @@ export default function AssetPage() {
                           {o.side === 1 ? 'Buy' : 'Sell'}{o.is_short ? ' (short)' : ''}
                         </td>
                         <td>{o.type}</td>
-                        <td>{parseFloat(o.qty).toFixed(4)}</td>
+                        <td>{parseFloat(o.qty).toFixed(0)}</td>
                         <td>{o.price ? parseFloat(o.price).toFixed(2) : 'MKT'}</td>
-                        <td>{parseFloat(o.filled_qty).toFixed(4)}</td>
+                        <td>{parseFloat(o.filled_qty).toFixed(0)}</td>
                         <td className={o.status === 'partial' ? 'text-yellow' : 'text-muted'}>{o.status}</td>
                         <td>
                           <button
@@ -206,23 +211,23 @@ export default function AssetPage() {
         </div>
 
         {/* Right column: orderbook + order form (sticky) */}
-        <div className={styles.colRight}>
+        <div className={`${styles.colRight} ${mobileTab === 'chart' ? styles.mobileHide : ''}`}>
           <div className={styles.stickyPanel}>
-            <div className="card" style={{ marginBottom: 16 }}>
+            <div className={`card ${mobileTab === 'trade' ? styles.mobileHide : ''}`} style={{ marginBottom: 16 }}>
               <div className={styles.colTitle}>Order Book</div>
               <OrderBookLadder bids={depth.bids} asks={depth.asks} />
             </div>
 
-            <div className="card">
+            <div className={`card ${mobileTab === 'book' ? styles.mobileHide : ''}`}>
               {myPosition && (
                 <Link to="/portfolio" className={styles.positionBanner}>
                   <span>
                     Holding:{' '}
                     <strong className={parseFloat(myPosition.qty) >= 0 ? 'text-green' : 'text-red'}>
-                      {parseFloat(myPosition.qty).toFixed(4)} qty
+                      {parseFloat(myPosition.qty).toFixed(0)} / 5 qty
                     </strong>
                     {parseFloat(myPosition.locked_qty) > 0 && (
-                      <span className="text-muted"> ({parseFloat(myPosition.locked_qty).toFixed(4)} locked)</span>
+                      <span className="text-muted"> ({parseFloat(myPosition.locked_qty).toFixed(0)} locked)</span>
                     )}
                   </span>
                   {myPosition.unrealised_pnl && (
@@ -233,62 +238,6 @@ export default function AssetPage() {
                   )}
                 </Link>
               )}
-
-              {asset && (() => {
-                const bal = portfolio?.balance
-                const freeCash = bal ? parseFloat(bal.cash) - parseFloat(bal.cash_locked) : 0
-                const scCoins = bal?.special_coins ?? 0
-                const used = asset.special_coin_used
-                const exhausted = asset.supply_used >= 1000
-                const disabled = used || exhausted || scCoins === 0 || freeCash < 10 || specialCoinMutation.isPending
-                const supplyPct = Math.min((asset.supply_used / 1000) * 100, 100)
-                const fillColor = supplyPct >= 80 ? 'var(--red)' : supplyPct >= 50 ? 'var(--yellow)' : 'var(--green)'
-                const stateLabel = used ? '✓ Special Coin Used'
-                  : exhausted ? 'Supply Exhausted'
-                  : scCoins === 0 ? 'No Special Coins'
-                  : freeCash < 10 ? 'Need 10 coins'
-                  : specialCoinMutation.isPending ? 'Processing...'
-                  : null
-                return (
-                  <div className={styles.specialCoinSection}>
-                    <div className={styles.specialCoinHeader}>
-                      <span className={styles.specialCoinTitle}>Special Coin</span>
-                      <span className={styles.specialCoinDesc}>Receive +1 qty instantly</span>
-                    </div>
-                    <div className={styles.supplyBar}>
-                      <div className={styles.supplyLabels}>
-                        <span>Supply distributed</span>
-                        <span>{asset.supply_used} / 1000</span>
-                      </div>
-                      <div className={styles.supplyTrack}>
-                        <div className={styles.supplyFill} style={{ width: `${supplyPct}%`, background: fillColor }} />
-                      </div>
-                    </div>
-                    <button
-                      className={styles.specialCoinBtn}
-                      disabled={disabled}
-                      onClick={() => specialCoinMutation.mutate()}
-                    >
-                      {stateLabel ?? (
-                        <>
-                          <span>Use Special Coin</span>
-                          <span className={styles.specialCoinBtnSub}>costs 10 coins · {scCoins} left</span>
-                        </>
-                      )}
-                    </button>
-                    {specialCoinMutation.isError && (
-                      <div className="text-red" style={{ fontSize: 12, marginTop: 6 }}>
-                        {(specialCoinMutation.error as Error)?.message}
-                      </div>
-                    )}
-                    {specialCoinMutation.isSuccess && (
-                      <div className="text-green" style={{ fontSize: 12, marginTop: 6 }}>
-                        +1 qty added to your position
-                      </div>
-                    )}
-                  </div>
-                )
-              })()}
 
               <div className={styles.colTitle}>Place Order</div>
               <OrderForm symbol={symbol!} assetName={asset?.name} myPosition={myPosition} />
