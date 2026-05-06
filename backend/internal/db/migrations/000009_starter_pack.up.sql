@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS starter_pack_seen BOOLEAN NOT NULL DEFAULT false;
