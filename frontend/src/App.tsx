@@ -13,6 +13,7 @@ import AssetsPage from './pages/Assets'
 import OrdersPage from './pages/Orders'
 import HoldingsPage from './pages/Holdings'
 import NavBar from './components/NavBar'
+import BackendGate from './components/BackendGate'
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { data, isLoading, isError } = useQuery<MeResponse>({
@@ -36,6 +37,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
+    <BackendGate>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -59,5 +61,6 @@ export default function App() {
         />
       </Routes>
     </BrowserRouter>
+    </BackendGate>
   )
 }

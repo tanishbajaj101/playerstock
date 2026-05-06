@@ -55,6 +55,10 @@ func (h *Handler) Routes() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(h.corsMiddleware)
 
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	// Auth routes
 	r.Get("/auth/google/login", h.googleLogin)
 	r.Get("/auth/google/callback", h.googleCallback)
