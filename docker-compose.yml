@@ -1,6 +1,12 @@
 services:
   postgres:
     image: postgres:16
+    command: >
+      postgres
+      -c shared_buffers=32MB
+      -c max_connections=25
+      -c work_mem=2MB
+      -c maintenance_work_mem=16MB
     environment:
       POSTGRES_USER: stake
       POSTGRES_PASSWORD: stake
