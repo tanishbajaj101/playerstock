@@ -110,7 +110,7 @@ export default function LoginPage() {
               <GoogleIcon />
               Continue with Google
             </a>
-            <span className={styles.bonus}>Start with 1000 coins</span>
+            <span className={styles.bonus}>Create an account and get 10 free players instantly</span>
           </div>
         </div>
 
