@@ -11,7 +11,10 @@
       "Bash(railway version *)",
       "Bash(railway *)",
       "PowerShell(railway whoami *)",
-      "Bash(npm i *)"
+      "Bash(npm i *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

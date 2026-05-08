@@ -16,15 +16,4 @@ envsubst '${BACKEND_HOST} ${PORT} ${NGINX_RESOLVER}' \
   < /etc/nginx/templates/default.conf.template \
   > /etc/nginx/conf.d/default.conf
 
-# Wait for backend to be reachable before nginx starts (prevents DNS_PROBE_FINISHED_NXDOMAIN)
-i=0
-until wget -qO- "http://${BACKEND_HOST}:8080/healthz" > /dev/null 2>&1; do
-  i=$((i+1))
-  if [ $i -ge 60 ]; then
-    echo "[stakestock] backend failed to start after 60s, aborting." >&2
-    exit 1
-  fi
-  sleep 1
-done
-
 exec nginx -g 'daemon off;'
